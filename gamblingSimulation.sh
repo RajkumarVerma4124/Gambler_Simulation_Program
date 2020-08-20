@@ -1,21 +1,20 @@
 echo "Welcome To The Program Of Gambling Simuation" 
 printf "\n"
 
-#arrays
-declare -A winMaxBets
-declare -A loseMaxBets
-
 #Bet Function For Multiple Days
 function checkBetForMonth() {
 	#After 20 days of playing every day shwoing the total amount won or lost(UC4).
 	read -p "Enter The Number Of Days For The Month You Are Gonna Play : " days
 	
+	#arrays
+	declare -A amountWon
+	declare -A amountLoss
+	
 	#variables
 	i=0
 	amountLose=0
 	amountWin=0
-	betsWin=0
-	betsLose=0
+	amount=0
 	daysLose=0
 	daysWon=0
 	count=1
@@ -27,7 +26,7 @@ function checkBetForMonth() {
 		stakeMoney=100				
 		betMoney=1
 
-		totalStake=$(($totalStake+$stakeMoney))
+		totalStake=$(($totalStake + $stakeMoney))
 		highStake=$((stakeMoney + stakeMoney/2))
 		lowStake=$((stakeMoney - stakeMoney/2))
 
@@ -38,30 +37,29 @@ function checkBetForMonth() {
 			if [ $(($RANDOM % 2)) -eq 1 ]
 			then
 				stakeMoney=$(($stakeMoney + $betMoney))
-				betsWin=$(($betsWin+1))
 			else
 				stakeMoney=$(($stakeMoney - $betMoney))
-				betsLose=$(($betsLose+1))
 			fi
 		done
-		i=$(($i+1))
+
+		i=$(($i + 1))
 
 		if [ $stakeMoney -eq 50 ]
 		then	
-
-			loseMaxBets[$count]=$betsLose
-			amountLose=$(($amountLose+50))
-			daysLose=$(($daysLose+1))
-			count=$(($count+1))
-			echo "Day : $i " "Amount Lose : $amountLose"
+			amountLose=$(($amountLose + 50))
+			amount=$(($amount - 50))
+			amountLoss[$count]=$amount
+			daysLose=$(($daysLose + 1))
+			echo "Day : $i " "Amount Lose : ${amountLoss[$count]}"
+			count=$(($count + 1))
 		else
-			winMaxBets[$count]=$betsWin			
-			amountWin=$(($amountWin+50))
-			count=$(($count+1))
-			daysWon=$(($daysWon+1))
-			echo "Day : $i " "Amount Won : $amountWin"
+			amountWin=$(($amountWin + 50))
+			amount=$(($amount + 50))
+			amountWon[$count]=$amount
+			daysWon=$(($daysWon + 1))
+			echo "Day : $i " "Amount Won : ${amountWon[$count]}"
+			count=$(($count + 1))
 		fi
-	
 	done
 	#Each month Showing the days won and lost and by how much(UC5)."
 	printf "\n"
@@ -73,10 +71,10 @@ function checkBetForMonth() {
 	echo "Total No. Of Days Lose : $daysLose"
 	echo "After $i Days You Have Total Amount Of : $totalAmount" 
 
-	luckyDays=$( printf "%s\n" ${!winMaxBets[@]} | sort -n )
-	unluckyDays=$( printf "%s\n" ${!loseMaxBets[@]} | sort -n )
-	echo "Lucky Days Are : " $luckyDays
-	echo "Unlucky Days Are : "$unluckyDays
+	daysWin=$( printf "%s\n" ${!amountWon[@]} | sort -n )
+	daysLoss=$( printf "%s\n" ${!amountLoss[@]} | sort -n )
+	echo "Days won are : " $daysWin
+	echo "Days loss are : "$daysLoss
 	
 	dayFinder
 	printf "\n"
@@ -91,51 +89,62 @@ function checkBetForMonth() {
 #Day Finder To Find Lucky And Unlucky Day(UC6)
 function dayFinder(){
 	#Showing luckiest day where I won maximum and my unluckiest day where I lost maximum(UC6)
+	
 	countWin=1
-	while [[ -z ${winMaxBets[$countWin]} ]]
+	while [[ -z ${amountWon[$countWin]} ]]
 	do
 		countWin=$((countWin+1))
 	done
-	
-	maxBetsWin=${winMaxBets[$countWin]}
-	for i in ${winMaxBets[@]}
+	maxWinDay=${amountWon[$countWin]}	
+	for i in ${amountWon[@]}
 	do
-		if [[ $i -gt $maxBetsWin ]]
+		if [[ $i -gt $maxWinDay ]]
 	     	then
-			maxBetsWin=$i
+			maxWinDay=$i
 		fi
 	done
-	for j in ${!winMaxBets[@]}
+	
+	declare -A luckiestDay
+	countDay=1
+	for j in ${!amountWon[@]}
 	do
-		if [[ ${winMaxBets[$j]} -eq $maxBetsWin ]]
+		if [[ ${amountWon[$j]} -eq $maxWinDay ]]
 		then
-			luckiestDay=$j
+			luckiestDay[$countDay]=$j
+			countDay=$(($countDay+1))
+		fi
+	done
+	
+	countLoss=1
+	while [[ -z ${amountLoss[$countLoss]} ]]
+	do
+		countLoss=$((countLoss+1))
+	done
+	maxLoseDay=${amountLoss[$countLoss]}	
+	for  i in ${amountLoss[@]}
+	do
+		if [[ $i -lt $maxLoseDay ]]
+	     	then
+			maxLoseDay=$i
+		fi		
+	done
+	
+	declare -A unluckiestDay
+	countLossDay=1
+	for j in ${!amountLoss[@]}
+	do
+		if [[ ${amountLoss[$j]} -eq $maxLoseDay ]]
+		then
+			unluckiestDay[$countLossDay]=$j
+			countLossDay=$(($countLossDay+1))
 		fi
 	done
 
-	countLose=1
-	while [[ -z ${loseMaxBets[$countLose]} ]]
-	do
-		countLose=$((countLose+1))
-	done
-	maxBetsLose=${loseMaxBets[$countLose]}
-	for i in ${loseMaxBets[@]}
-	do
-		if [[ $i -gt $maxBetsLose ]]
-	     	then
-			maxBetsLose=$i
-		fi
-	done
-	for j in ${!loseMaxBets[@]}
-	do
-		if [[ ${loseMaxBets[$j]} -eq $maxBetsLose ]]
-		then
-			unluckiestDay=$j
-		fi
-	done
-	
-	echo "The Luckiest Day is $luckiestDay With Maximum Bets Win Of $maxBetsWin"
-	echo "The Unuckiest Day is $unluckiestDay With Maximum Bets Win Of $maxBetsLose"
+	if [[ $maxWinDay -gt 0 ]]
+	then
+	echo "The Luckiest Day is ${luckiestDay[@]} With $maxWinDay Rs"
+	fi
+	echo "The Unluckiest Day is ${unluckiestDay[@]} With $maxLoseDay Rs"
 }
 
 #PlayGame For Who Will Be Eligibile For Next Month(UC7) 
