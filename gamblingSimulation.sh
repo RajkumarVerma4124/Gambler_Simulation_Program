@@ -77,11 +77,18 @@ function checkBetForMonth() {
 	unluckyDays=$( printf "%s\n" ${!loseMaxBets[@]} | sort -n )
 	echo "Lucky Days Are : " $luckyDays
 	echo "Unlucky Days Are : "$unluckyDays
+	
 	dayFinder
-	printf "\n"	
+	printf "\n"
+	
+	#If won continuing playing nextmonth or stop Gambling (UC7)
+	if [[ $daysWon -gt $daysLose ]]
+	then
+		monthEligibility
+	fi
 }
 
-#Day Finder To Find Lucky And Unlucky Day(UC7)
+#Day Finder To Find Lucky And Unlucky Day(UC6)
 function dayFinder(){
 	#Showing luckiest day where I won maximum and my unluckiest day where I lost maximum(UC6)
 	countWin=1
@@ -129,6 +136,17 @@ function dayFinder(){
 	
 	echo "The Luckiest Day is $luckiestDay With Maximum Bets Win Of $maxBetsWin"
 	echo "The Unuckiest Day is $unluckiestDay With Maximum Bets Win Of $maxBetsLose"
+}
+
+#PlayGame For Who Will Be Eligibile For Next Month(UC7) 
+function monthEligibility(){
+	read -p "You Are Eligible For Playing Next Month. Press Yes To Continue Or No To Exit The Game : " option
+	if [ $option == "Yes" ]
+	then
+		checkBetForMonth
+	else
+		echo "Thanks For Playing See You Soon "
+	fi
 }
 
 #Main Code
